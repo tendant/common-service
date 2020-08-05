@@ -12,5 +12,6 @@
                  [juxt/crux-jdbc "20.06-1.9.1-beta"]
                  [org.postgresql/postgresql "42.2.14"]
                  [juxt/crux-http-server "20.06-1.9.1-alpha"]
-                 [juxt/crux-http-client "20.06-1.9.1-beta"]]
+                 [juxt/crux-http-client "20.06-1.9.1-beta"]
+                 [yogthos/config "1.1.5"]]
   :repl-options {:init-ns common-service.core})
