@@ -159,7 +159,6 @@
                                          :age n}))
 
   (entities node :entity/contact)
-  (entities node :emoinsure.entity/openid)
   (create-entity node :entity/contact {:openid "test open id"})
 
   (find-entity-by-id node (uuid "622a03c8-5e31-46ad-b847-75d473f93c06"))
