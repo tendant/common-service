@@ -3,38 +3,6 @@
             [config.core :refer [env]]
             [clojure.java.io :as io]))
 
-(defn start-standalone-node ^crux.api.ICruxAPI [storage-dir]
-  (crux/start-node {:crux.node/topology '[crux.standalone/topology]
-                    :crux.kv/db-dir (str (io/file storage-dir "db"))}))
-
-(defn start-jdbc-node []
-  (crux/start-node {:crux.node/topology '[crux.jdbc/topology]
-                    :crux.jdbc/dbtype (:crux-jdbc-dbtype env)
-                    :crux.jdbc/dbname (:crux-jdbc-dbname env)
-                    :crux.jdbc/host (:crux-jdbc-host env)
-                    :crux.jdbc/user (:crux-jdbc-user env)
-                    :crux.jdbc/password (:crux-jdbc-password env)}))
-
-(defn start-jdbc-http-node [port]
-  (crux/start-node {:crux.node/topology '[crux.jdbc/topology crux.http-server/module]
-                    :crux.http-server/port port
-                    ;; by default, the HTTP server is read-write - set this flag to make it read-only
-                    :crux.http-server/read-only? false
-
-                    :crux.jdbc/dbtype (:crux-jdbc-dbtype env)
-                    :crux.jdbc/dbname (:crux-jdbc-dbname env)
-                    :crux.jdbc/host (:crux-jdbc-host env)
-                    :crux.jdbc/user (:crux-jdbc-user env)
-                    :crux.jdbc/password (:crux-jdbc-password env)}))
-
-(defn- start-node []
-  ;; (start-standalone-node "crux-store")
-  ;; (start-jdbc-http-node 10090)
-  (start-jdbc-node)
-  )
-
-(def get-node (memoize start-node))
-
 (defn- gen-uuid*
   []
   (java.util.UUID/randomUUID))
