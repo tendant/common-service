@@ -6,6 +6,5 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [juxt/crux-core "20.09-1.11.0-beta"]
                  [juxt/crux-jdbc "20.09-1.11.0-beta"]
-                 [org.postgresql/postgresql "42.2.14"]
                  [yogthos/config "1.1.5"]]
   :repl-options {:init-ns common.crux-svc})
