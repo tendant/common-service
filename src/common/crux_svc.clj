@@ -19,7 +19,23 @@
                  [[:crux.tx/put
                    (assoc params
                           :crux.db/id crux-id
-                          :entity/type entity-type)]])]
+                          :entity/type entity-type)
+                   (:crux.db/valid-time params)]])]
+    (-> params
+        (assoc :crux.db/id crux-id)
+        (assoc :crux.tx crux-tx))))
+
+(defn create-entity-sync
+  [node entity-type params]
+  (let [crux-id (:crux.db/id params (gen-uuid*))
+        crux-tx (crux/submit-tx
+                 node
+                 [[:crux.tx/put
+                   (assoc params
+                          :crux.db/id crux-id
+                          :entity/type entity-type)
+                   (:crux.db/valid-time params)]])]
+    (crux/await-tx node crux-tx)
     (-> params
         (assoc :crux.db/id crux-id)
         (assoc :crux.tx crux-tx))))
@@ -77,6 +93,10 @@
   [node entity-type attr value]
   (first (find-entities-by-attr node entity-type attr value)))
 
+(defn find-entity-by-attrs
+  [node entity-type attrs]
+  (first (find-entities-by-attrs node entity-type attrs)))
+
 (defn entities
   [node entity-type]
   (->> (crux/q (crux/db node)
@@ -109,6 +129,43 @@
        node
        [[:crux.tx/put
          updated]])
+      updated)))
+
+(defn update-entity-with-type
+  [node id entity-type params]
+  (let [entity (retrieve-entity-by-id node id)
+        updated (merge entity params {:crux.db/id id})]
+    (when (and entity
+               (= entity-type (:entity/type entity)))
+      (crux/submit-tx
+       node
+       [[:crux.tx/put
+         updated]])
+      updated)))
+
+(defn update-entity-sync
+  [node id params]
+  (let [entity (retrieve-entity-by-id node id)
+        updated (merge entity params {:crux.db/id id})]
+    (when entity
+      (->> (crux/submit-tx
+            node
+            [[:crux.tx/put
+              updated]])
+           (crux/await-tx node ))
+      updated)))
+
+(defn update-entity-with-type-sync
+  [node id entity-type params]
+  (let [entity (retrieve-entity-by-id node id)
+        updated (merge entity params {:crux.db/id id})]
+    (when (and entity
+               (= entity-type (:entity/type entity)))
+      (->> (crux/submit-tx
+            node
+            [[:crux.tx/put
+              updated]])
+           (crux/await-tx node))
       updated)))
 
 (defn delete-entity
