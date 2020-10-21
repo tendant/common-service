@@ -13,13 +13,41 @@
             [ring.middleware.exceptions :as exceptions]
             [org.httpkit.server :as http]
             [clojure.java.io :as io]
+            [cheshire.core :as json]
             [taoensso.timbre :as log]
             [config.core :refer [env]]
             [ring.util.response :as resp :refer [response file-response resource-response redirect]]
             [config.core :as config]
-            [common.crux-svc :as crux-svc]
+            [crux.api :as crux]
+            [common.crux-svc :as cs]
             )
   (:gen-class))
+
+(defn- start-standalone-node ^crux.api.ICruxAPI [storage-dir]
+  (crux/start-node {}))
+
+(def ^:private crux-node (atom nil))
+
+(defn- get-node []
+  (when (nil? @crux-node)
+    (log/debug "Start new crux node...")
+    (reset! crux-node (start-standalone-node "crux-store"))
+    (log/debug "Done new crux node."))
+  @crux-node)
+
+(defn warm-up-crux-node
+  []
+  (get-node)
+  ;; wait for crux node to be ready
+  (Thread/sleep 200)
+  )
+
+(defn wrap-crux-node
+  [handler]
+  (fn [req]
+    (->> (get-node)
+         (assoc req :crux-node)
+         handler)))
 
 (defn default-pre-hook
   [e req uuid]
@@ -40,15 +68,6 @@
         (log/debug resp))
       resp)))
 
-(defn graphql-session-response [result]
-  (let [resp (response result)]
-    (if-let [token (or (get-in result [:data "login" "token"])
-                       (get-in result [:data "register" "token"]))]
-      (assoc resp :cookies {"token" {:value token
-                                     :path "/"
-                                     :max-age (* 12 3600)}}) ; 12 hours
-      resp)))
-
 (def ^:private app-path "/app")
 
 (defn app-index-route
@@ -57,7 +76,18 @@
 
 (defroutes app-routes
   (GET "/" [:as req]
-       "OK")
+    (let [node (:crux-node req)]
+      (->> (cs/entities node :entity/contact)
+           (json/encode)
+           (#(resp/response {:status 200
+                             :body %})))))
+  (POST "/new-contact" [:as req]
+    (let [node (:crux-node req)
+          n (rand-int 100)]
+      (->> (cs/create-entity-sync node :entity/contact {:name (format "test contact %s" n)})
+           (json/encode)
+           (#(resp/response {:status 200
+                             :body %})))))
   (route/not-found "Not Found"))
 
 (def app
@@ -72,15 +102,14 @@
       (wrap-cors :access-control-allow-origin [#"http://.*:3000" #"https://.*:3000" #"https://.*localhost/*.*"]
                  :access-control-allow-methods [:get :put :post :delete])
       (wrap-reload)
+      (wrap-crux-node)
       (wrap-debugger "app")))
 
 (defn -main [& args]
   (let [port (try
                (Integer/parseInt (first args))
                (catch Exception _
-                 9090))
-        _ (println "Start jdbc node...")
-        node (crux-svc/start-jdbc-node)
-        _ (println "Started jdbc node.")]
+                 9090))]
+    (warm-up-crux-node)
     (http/run-server app {:port port})
     (log/debugf "Server started on port %s....%n" port)))
