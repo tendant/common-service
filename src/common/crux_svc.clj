@@ -54,6 +54,17 @@
               (retrieve-entity-by-id node id)))
        (first)))
 
+(defn find-entity-by-id-and-type
+  [node id entity-type]
+  (->> (crux/q (crux/db node)
+               {:find '[?e]
+                :where '[[?e :crux.db/id ?id]
+                         [?e :entity/type ?t]]
+                :args [{'?id id '?t entity-type}]})
+       (map (fn [[id]]
+              (retrieve-entity-by-id node id)))
+       (first)))
+
 (defn find-entities-by-ids
   [node ids]
   {:pre [(set? ids)]}
@@ -62,6 +73,18 @@
                 :where '[[?e :crux.db/id ?id]
                          [(contains? ?ids ?id)]]
                 :args [{'?ids ids}]})
+       (map (fn [[id]]
+              (retrieve-entity-by-id node id)))))
+
+(defn find-entities-by-ids-and-type
+  [node ids entity-type]
+  {:pre [(set? ids)]}
+  (->> (crux/q (crux/db node)
+               {:find '[?e]
+                :where '[[?e :crux.db/id ?id]
+                         [(contains? ?ids ?id)]
+                         [?e :entity/type ?t]]
+                :args [{'?ids ids '?t entity-type}]})
        (map (fn [[id]]
               (retrieve-entity-by-id node id)))))
 
