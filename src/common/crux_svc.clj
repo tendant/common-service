@@ -112,6 +112,37 @@
        (map (fn [[id]]
               (retrieve-entity-by-id node id)))))
 
+(defn find-entities-by-attrs-with-order-by-and-limit
+  [node entity-type attrs order-by limit]
+  {:pre [(map? attrs)
+         (map? order-by)
+         (int? limit)]}
+  (let [created-at-order (:created-at order-by)
+        ks (keys order-by)
+        av (apply dissoc attrs ks)
+        ob (select-keys attrs ks)
+        created-at-val (:created-at ob)]
+    (->> (crux/q (crux/db node)
+                 `{:find ~['?e '?created-at]
+                   :where ~(cond-> (reduce
+                                    (fn [q [a v]]
+                                      (conj q ['?e a v]))
+                                    [['?e :entity/type entity-type]
+                                     ['?e :created-at '?created-at]]
+                                    av)
+
+                                   (= :desc created-at-order)
+                                   (conj [`(< ~'?created-at ~created-at-val)])
+
+                                   (= :asc created-at-order)
+                                   (conj [`(> ~'?created-at ~created-at-val)])
+                                   )
+                   :order-by ~[['?created-at created-at-order]]
+                   :limit ~limit
+                   })
+         (map (fn [[id]]
+                (retrieve-entity-by-id node id))))))
+
 (defn find-entity-by-attr
   [node entity-type attr value]
   (first (find-entities-by-attr node entity-type attr value)))
@@ -199,14 +230,16 @@
      crux-id]]))
 
 (comment
+  (def node (crux.api/start-node {}))
 
-  (def node (get-node))
-
-  (dotimes [n 3]
+  (dotimes [n 10]
     (create-entity node :entity/contact {:name (format "test contact %s" n)
-                                         :age n}))
+                                         :created-at n}))
 
   (entities node :entity/contact)
+
+  (find-entities-by-attrs-with-order-by-and-limit node :entity/contact {:created-at 3} {:created-at :asc} 5)
+
   (create-entity node :entity/contact {:openid "test open id"})
 
   (find-entity-by-id node (uuid "622a03c8-5e31-46ad-b847-75d473f93c06"))
