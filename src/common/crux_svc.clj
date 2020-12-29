@@ -117,27 +117,31 @@
   {:pre [(map? attrs)
          (map? order-by)
          (int? limit)]}
-  (let [created-at-order (:created-at order-by)
-        ks (keys order-by)
-        av (apply dissoc attrs ks)
-        ob (select-keys attrs ks)
-        created-at-val (:created-at ob)]
+  (let [[ok ov] (first (seq order-by))
+        avs (dissoc attrs ok)
+        ab (get attrs ok)
+        ]
     (->> (crux/q (crux/db node)
-                 `{:find ~['?e '?created-at]
+                 `{:find ~(cond-> ['?e]
+                            (some? ov)
+                            (conj '?o))
                    :where ~(cond-> (reduce
                                     (fn [q [a v]]
                                       (conj q ['?e a v]))
-                                    [['?e :entity/type entity-type]
-                                     ['?e :created-at '?created-at]]
-                                    av)
+                                    [['?e :entity/type entity-type]]
+                                    avs)
 
-                                   (= :desc created-at-order)
-                                   (conj [`(< ~'?created-at ~created-at-val)])
+                             (some? ov)
+                             (conj ['?e ok '?o])
 
-                                   (= :asc created-at-order)
-                                   (conj [`(> ~'?created-at ~created-at-val)])
+                             (some? ab)
+                             (conj (case ov
+                                     :desc [`(< ~'?o ~ab)]
+                                     :asc [`(> ~'?o ~ab)]))
                                    )
-                   :order-by ~[['?created-at created-at-order]]
+                   :order-by ~(cond-> []
+                                (some? ov)
+                                (conj ['?o ov]))
                    :limit ~limit
                    })
          (map (fn [[id]]
