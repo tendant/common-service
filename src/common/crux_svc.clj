@@ -112,7 +112,7 @@
        (map (fn [[id]]
               (retrieve-entity-by-id node id)))))
 
-(defn find-entities-by-attrs-with-order-by-and-limit
+(defn find-entities-by-attrs-with-order-by-and-limit*
   [node entity-type attrs order-by limit]
   {:pre [(map? attrs)
          (map? order-by)
