@@ -258,18 +258,27 @@
 
   (dotimes [n 10]
     (create-entity node :entity/contact {:name (format "test contact %s" n)
-                                         :created-at n}))
+                                         :priority n}))
 
   (create-entity node :entity/contact {:name (format "big contact %s" 5)
-                                       :created-at 5})
+                                       :priority 5})
 
   (entities node :entity/contact)
 
   (find-entities-by-attrs-with-order-by-and-limit node :entity/contact
-                                                  {:created-at 3}
-                                                  {:created-at :asc
+                                                  {:priority 3}
+                                                  {:priority :asc
                                                    :name :asc}
                                                   5)
+  (comment
+   {:find [?e priority16472 name16473],
+    :where [[?e :entity/type :entity/contact]
+            [?e :priority priority16472]
+            [(clojure.core/> priority16472 priority16474)]
+            [?e :name name16473]],
+    :args [{priority16474 3}],
+    :limit 5,
+    :order-by [[priority16472 :asc] [name16473 :asc]]})
 
   (find-entity-by-id node (uuid "622a03c8-5e31-46ad-b847-75d473f93c06"))
   (retrieve-entity-tx-by-id node (uuid "622a03c8-5e31-46ad-b847-75d473f93c06"))
