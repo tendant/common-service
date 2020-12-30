@@ -156,6 +156,7 @@
         avs (apply dissoc attrs ks)
         abs (select-keys attrs ks)
         symm (zipmap ks (map (comp gensym name) ks))
+        syma (zipmap ks (map (comp gensym name) ks))
         ]
     (->> (crux/q (crux/db node)
                  `{:find ~(reduce
@@ -173,8 +174,8 @@
 
                                 (some? (get abs a))
                                 (conj (case v
-                                        :desc [`(< ~(get symm a) ~(get abs a))]
-                                        :asc [`(> ~(get symm a) ~(get abs a))]))
+                                        :desc [`(< ~(get symm a) ~(get syma a))]
+                                        :asc [`(> ~(get symm a) ~(get syma a))]))
                                       ))
                             (reduce
                              (fn [q [a v]]
@@ -190,6 +191,13 @@
                                []
                                order-by)
                    :limit ~limit
+                   :args ~[(reduce
+                            (fn [q [a v]]
+                              (cond-> q
+                                (some? (get abs a))
+                                (assoc (get syma a) (get abs a))))
+                            {}
+                            order-by)]
                    })
          (map (fn [[id]]
                 (retrieve-entity-by-id node id))))))
