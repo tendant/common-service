@@ -112,41 +112,6 @@
        (map (fn [[id]]
               (retrieve-entity-by-id node id)))))
 
-(defn find-entities-by-attrs-with-order-by-and-limit*
-  [node entity-type attrs order-by limit]
-  {:pre [(map? attrs)
-         (map? order-by)
-         (int? limit)]}
-  (let [[ok ov] (first (seq order-by))
-        avs (dissoc attrs ok)
-        ab (get attrs ok)
-        ]
-    (->> (crux/q (crux/db node)
-                 `{:find ~(cond-> ['?e]
-                            (some? ov)
-                            (conj '?o))
-                   :where ~(cond-> (reduce
-                                    (fn [q [a v]]
-                                      (conj q ['?e a v]))
-                                    [['?e :entity/type entity-type]]
-                                    avs)
-
-                             (some? ov)
-                             (conj ['?e ok '?o])
-
-                             (some? ab)
-                             (conj (case ov
-                                     :desc [`(< ~'?o ~ab)]
-                                     :asc [`(> ~'?o ~ab)]))
-                                   )
-                   :order-by ~(cond-> []
-                                (some? ov)
-                                (conj ['?o ov]))
-                   :limit ~limit
-                   })
-         (map (fn [[id]]
-                (retrieve-entity-by-id node id))))))
-
 (defn find-entities-by-attrs-with-order-by-and-limit
   [node entity-type attrs order-by limit]
   {:pre [(map? attrs)
