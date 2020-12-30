@@ -147,6 +147,53 @@
          (map (fn [[id]]
                 (retrieve-entity-by-id node id))))))
 
+(defn find-entities-by-attrs-with-order-by-and-limit
+  [node entity-type attrs order-by limit]
+  {:pre [(map? attrs)
+         (map? order-by)
+         (int? limit)]}
+  (let [ks (keys order-by)
+        avs (apply dissoc attrs ks)
+        abs (select-keys attrs ks)
+        symm (zipmap ks (map (comp gensym name) ks))
+        ]
+    (->> (crux/q (crux/db node)
+                 `{:find ~(reduce
+                           (fn [q [a v]]
+                             (cond-> q
+                               (some? v)
+                               (conj (get symm a))))
+                           ['?e]
+                           order-by)
+                   :where ~(reduce
+                            (fn [q [a v]]
+                              (cond-> q
+                                (some? v)
+                                (conj ['?e a (get symm a)])
+
+                                (some? (get abs a))
+                                (conj (case v
+                                        :desc [`(< ~(get symm a) ~(get abs a))]
+                                        :asc [`(> ~(get symm a) ~(get abs a))]))
+                                      ))
+                            (reduce
+                             (fn [q [a v]]
+                               (conj q ['?e a v]))
+                             [['?e :entity/type entity-type]]
+                             avs)
+                            order-by)
+                   :order-by ~(reduce
+                               (fn [q [a v]]
+                                 (cond-> q
+                                   (some? v)
+                                   (conj [(get symm a) v])))
+                               []
+                               order-by)
+                   :limit ~limit
+                   })
+         (map (fn [[id]]
+                (retrieve-entity-by-id node id))))))
+
 (defn find-entity-by-attr
   [node entity-type attr value]
   (first (find-entities-by-attr node entity-type attr value)))
