@@ -287,11 +287,16 @@
     (create-entity node :entity/contact {:name (format "test contact %s" n)
                                          :created-at n}))
 
+  (create-entity node :entity/contact {:name (format "big contact %s" 5)
+                                       :created-at 5})
+
   (entities node :entity/contact)
 
-  (find-entities-by-attrs-with-order-by-and-limit node :entity/contact {:created-at 3} {:created-at :asc} 5)
-
-  (create-entity node :entity/contact {:openid "test open id"})
+  (find-entities-by-attrs-with-order-by-and-limit node :entity/contact
+                                                  {:created-at 3}
+                                                  {:created-at :asc
+                                                   :name :asc}
+                                                  5)
 
   (find-entity-by-id node (uuid "622a03c8-5e31-46ad-b847-75d473f93c06"))
   (retrieve-entity-tx-by-id node (uuid "622a03c8-5e31-46ad-b847-75d473f93c06"))
