@@ -293,7 +293,25 @@
   (create-entity node :entity/contact {:name (format "big contact %s" 5)
                                        :priority 5})
 
+  (create-entity node :entity/contact {:name "test name"
+                                       :crux.db/id "stringid"
+                                       :priority 5})
+
   (entities node :entity/contact)
+
+  (->> (crux/q (crux/db node)
+               {:find '[?e]
+                :in '[[[?t ?id]]]
+                :where '[[?e :entity/type ?t]
+                         [?e :crux.db/id ?id]]
+                }
+               [[:entity/contact "stringid"]
+                [:entity/contact #uuid "e30a5a6d-9c3b-44f5-8d7d-79eedda14e75"]])
+       (map (fn [[id]]
+              (retrieve-entity-by-id node id))))
+
+  (find-entities-by-ids node ["stringid", #uuid "e30a5a6d-9c3b-44f5-8d7d-79eedda14e75"])
+  (find-entities-by-ids-and-type node ["stringid", #uuid "e30a5a6d-9c3b-44f5-8d7d-79eedda14e75"] :entity/contact)
 
   (find-entities-by-attrs-with-order-by-and-limit node :entity/contact
                                                   {:priority 3}
