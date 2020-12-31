@@ -81,15 +81,17 @@
 
 (defn find-entities-by-ids-and-type
   [node ids entity-type]
-  {:pre [(set? ids)]}
-  (->> (crux/q (crux/db node)
-               {:find '[?e]
-                :where '[[?e :crux.db/id ?id]
-                         [(contains? ?ids ?id)]
-                         [?e :entity/type ?t]]
-                :args [{'?ids ids '?t entity-type}]})
-       (map (fn [[id]]
-              (retrieve-entity-by-id node id)))))
+  {:pre [(vector? ids)]}
+  (let [tids (mapv #(vector entity-type %) ids)]
+    (->> (crux/q (crux/db node)
+                 {:find '[?e]
+                  :in '[[[?t ?id]]]
+                  :where '[[?e :entity/type ?t]
+                           [?e :crux.db/id ?id]]
+                  }
+                 tids)
+         (map (fn [[id]]
+                (retrieve-entity-by-id node id))))))
 
 (defn find-entities-by-attr
   [node entity-type attr value]
