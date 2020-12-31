@@ -3,6 +3,8 @@
             [config.core :refer [env]]
             [clojure.java.io :as io]))
 
+(def ^:private gen-sym (comp gensym name))
+
 (defn- gen-uuid*
   []
   (java.util.UUID/randomUUID))
@@ -101,16 +103,22 @@
 (defn find-entities-by-attrs
   [node entity-type attrs]
   {:pre [(map? attrs)]}
-  (->> (crux/q (crux/db node)
-               `{:find [~'?e]
-                 :where ~(reduce 
-                          (fn [q [a v]]
-                            (conj q ['?e a v]))
-                          [['?e :entity/type entity-type]]
-                          attrs)
-                 })
-       (map (fn [[id]]
-              (retrieve-entity-by-id node id)))))
+  (let [syma (into {} (for [[k v] attrs] [k (gen-sym k)]))]
+    (->> (crux/q (crux/db node)
+                 `{:find [~'?e]
+                   :where ~(reduce
+                            (fn [q [a v]]
+                              (conj q ['?e a (get syma a)]))
+                            [['?e :entity/type '?t]]
+                            attrs)
+                   :args ~[(reduce
+                            (fn [q [a v]]
+                              (assoc q (get syma a) v))
+                            {'?t entity-type}
+                            attrs)]
+                   })
+         (map (fn [[id]]
+                (retrieve-entity-by-id node id))))))
 
 (defn find-entities-by-attrs-with-order-by-and-limit
   [node entity-type attrs order-by limit]
