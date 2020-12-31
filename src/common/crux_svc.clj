@@ -181,6 +181,27 @@
   [node entity-type attrs]
   (first (find-entities-by-attrs node entity-type attrs)))
 
+(defn count-entities-by-attrs
+  [node entity-type attrs & [opts]]
+  {:pre [(map? attrs)]}
+  (let [syma (into {} (for [[k v] attrs] [k (gen-sym k)]))]
+    (->> (crux/q (crux/db node)
+                 `{:find ~(if (:distinct? opts)
+                            [`(~'count-distinct ~'?e)]
+                            [`(~'count ~'?e)])
+                   :where ~(reduce
+                            (fn [q [a v]]
+                              (conj q ['?e a (get syma a)]))
+                            [['?e :entity/type '?t]]
+                            attrs)
+                   :args ~[(reduce
+                            (fn [q [a v]]
+                              (assoc q (get syma a) v))
+                            {'?t entity-type}
+                            attrs)]
+                   })
+         (ffirst))))
+
 (defn entities
   [node entity-type]
   (->> (crux/q (crux/db node)
@@ -276,6 +297,9 @@
                                                   {:priority :asc
                                                    :name :asc}
                                                   5)
+
+  (count-entities-by-attrs node :entity/contact {:priority 3} {:distinct? true})
+
   (comment
    {:find [?e priority16472 name16473],
     :where [[?e :entity/type :entity/contact]
