@@ -69,12 +69,13 @@
 
 (defn find-entities-by-ids
   [node ids]
-  {:pre [(set? ids)]}
+  {:pre [(vector? ids)]}
   (->> (crux/q (crux/db node)
                {:find '[?e]
-                :where '[[?e :crux.db/id ?id]
-                         [(contains? ?ids ?id)]]
-                :args [{'?ids ids}]})
+                :in '[[?id ...]]
+                :where '[[?e :crux.db/id ?id]]
+                }
+               ids)
        (map (fn [[id]]
               (retrieve-entity-by-id node id)))))
 
