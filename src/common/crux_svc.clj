@@ -205,6 +205,27 @@
                    })
          (ffirst))))
 
+(defn sum-entities-by-attrs
+  [node entity-type attrs sum-attr]
+  {:pre [(map? attrs)
+         (keyword? sum-attr)]}
+  (let [syma (into {} (for [[k v] attrs] [k (gen-sym k)]))]
+    (->> (crux/q (crux/db node)
+                 `{:find ~[`(~'sum ~'?sa)]
+                   :where ~(reduce
+                            (fn [q [a v]]
+                              (conj q ['?e a (get syma a)]))
+                            [['?e :entity/type '?t]
+                             ['?e sum-attr '?sa]]
+                            attrs)
+                   :args ~[(reduce
+                            (fn [q [a v]]
+                              (assoc q (get syma a) v))
+                            {'?t entity-type}
+                            attrs)]
+                   })
+         (ffirst))))
+
 (defn entities
   [node entity-type]
   (->> (crux/q (crux/db node)
@@ -320,6 +341,8 @@
                                                   5)
 
   (count-entities-by-attrs node :entity/contact {:priority 3} {:distinct? true})
+
+  (sum-entities-by-attrs node :entity/contact {} :priority)
 
   (comment
    {:find [?e priority16472 name16473],
