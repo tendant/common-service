@@ -127,51 +127,49 @@
          (int? limit)]}
   (let [ks (keys order-by)
         avs (apply dissoc attrs ks)
-        abs (select-keys attrs ks)
-        symm (zipmap ks (map (comp gensym name) ks))
-        syma (zipmap ks (map (comp gensym name) ks))
-        ]
+        aos (select-keys attrs ks)
+        symm (into {} (for [[k v] order-by] [k (gen-sym k)]))
+        symo (into {} (for [[k v] order-by] [k (gen-sym k)]))
+        syma (into {} (for [[k v] avs] [k (gen-sym k)]))]
     (->> (crux/q (crux/db node)
-                 `{:find ~(reduce
-                           (fn [q [a v]]
+          `{:find ~(reduce (fn [q [a v]]
                              (cond-> q
                                (some? v)
                                (conj (get symm a))))
                            ['?e]
                            order-by)
-                   :where ~(reduce
-                            (fn [q [a v]]
+            :where ~(reduce (fn [q [a v]]
                               (cond-> q
                                 (some? v)
                                 (conj ['?e a (get symm a)])
 
-                                (some? (get abs a))
+                                (some? (get aos a))
                                 (conj (case v
-                                        :desc [`(< ~(get symm a) ~(get syma a))]
-                                        :asc [`(> ~(get symm a) ~(get syma a))]))
-                                      ))
+                                        :desc [`(< ~(get symm a) ~(get symo a))]
+                                        :asc [`(> ~(get symm a) ~(get symo a))]))))
                             (reduce
                              (fn [q [a v]]
-                               (conj q ['?e a v]))
-                             [['?e :entity/type entity-type]]
+                               (conj q ['?e a (get syma a)]))
+                             [['?e :entity/type '?t]]
                              avs)
                             order-by)
-                   :order-by ~(reduce
-                               (fn [q [a v]]
+            :order-by ~(reduce (fn [q [a v]]
                                  (cond-> q
-                                   (some? v)
-                                   (conj [(get symm a) v])))
+                                  (some? v)
+                                  (conj [(get symm a) v])))
                                []
                                order-by)
-                   :limit ~limit
-                   :args ~[(reduce
-                            (fn [q [a v]]
+            :limit ~limit
+            :args ~[(reduce (fn [q [a v]]
                               (cond-> q
-                                (some? (get abs a))
-                                (assoc (get syma a) (get abs a))))
-                            {}
+                                (some? (get aos a))
+                                (assoc (get symo a) (get aos a))))
+                            (reduce (fn [q [a v]]
+                                      (assoc q (get syma a) v))
+                                    {'?t entity-type}
+                                    avs)
                             order-by)]
-                   })
+            })
          (map (fn [[id]]
                 (retrieve-entity-by-id node id))))))
 
