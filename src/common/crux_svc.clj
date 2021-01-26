@@ -149,7 +149,9 @@
                                 (some? (get aos a))
                                 (conj (case v
                                         :desc [`(< ~(get symm a) ~(get symo a))]
-                                        :asc [`(> ~(get symm a) ~(get symo a))]))))
+                                        :desc-rev [`(> ~(get symm a) ~(get symo a))]
+                                        :asc [`(> ~(get symm a) ~(get symo a))]
+                                        :asc-rev [`(< ~(get symm a) ~(get symo a))]))))
                             (reduce
                              (fn [q [a v]]
                                (conj q ['?e a (get syma a)]))
@@ -158,8 +160,10 @@
                             order-by)
             :order-by ~(reduce (fn [q [a v]]
                                  (cond-> q
-                                  (some? v)
-                                  (conj [(get symm a) v])))
+                                   (some? v)
+                                   (conj (case v
+                                           (:desc :desc-rev) [(get symm a) :desc]
+                                           (:asc :asc-rev) [(get symm a) :asc]))))
                                []
                                order-by)
             :limit ~limit
@@ -392,7 +396,7 @@
 
   (find-entities-by-attrs-with-order-by-and-limit node :entity/contact
                                                   {:priority 3}
-                                                  {:priority :asc
+                                                  {:priority :asc-rev
                                                    :name :asc}
                                                   5)
   
