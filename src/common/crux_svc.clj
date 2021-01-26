@@ -176,6 +176,62 @@
          (map (fn [[id]]
                 (retrieve-entity-by-id node id))))))
 
+(defn find-entities-by-attrs-with-predicates-and-limit
+  [node entity-type attrs predicates limit]
+  {:pre [(map? attrs)
+         (map? predicates)
+         (int? limit)]}
+  (let [ks (keys predicates)
+        avs (apply dissoc attrs ks)
+        aos (select-keys attrs ks)
+        symm (into {} (for [[k v] predicates] [k (gen-sym k)]))
+        symo (into {} (for [[k v] predicates] [k (gen-sym k)]))
+        syma (into {} (for [[k v] avs] [k (gen-sym k)]))]
+    (->> (crux/q (crux/db node)
+          `{:find ~(reduce (fn [q [a v]]
+                             (cond-> q
+                               (some? v)
+                               (conj (get symm a))))
+                           ['?e]
+                           predicates)
+            :where ~(reduce (fn [q [a v]]
+                              (let [ffn (:first v)
+                                    lfn (:last v)
+                                    bfn (:bool v)]
+                                (cond-> q
+                                  (some? v)
+                                  (conj ['?e a (get symm a)])
+                                  
+                                  (and (some? (get aos a))
+                                       (string? ffn))
+                                  (conj [`(~(read-string ffn) ~(get symm a) ~(get symo a))])
+                                  
+                                  (and (some? (get aos a))
+                                       (string? lfn))
+                                  (conj [`(~(read-string lfn) ~(get symo a) ~(get symm a))])
+                                  
+                                  (string? bfn)
+                                  (conj [`(~(read-string bfn) ~(get symm a))]))))
+                            (reduce
+                             (fn [q [a v]]
+                               (conj q ['?e a (get syma a)]))
+                             [['?e :entity/type '?t]]
+                             avs)
+                            predicates)
+            :limit ~limit
+            :args ~[(reduce (fn [q [a v]]
+                              (cond-> q
+                                (some? (get aos a))
+                                (assoc (get symo a) (get aos a))))
+                            (reduce (fn [q [a v]]
+                                      (assoc q (get syma a) v))
+                                    {'?t entity-type}
+                                    avs)
+                            predicates)]
+            })
+         (map (fn [[id]]
+                (retrieve-entity-by-id node id))))))
+
 (defn find-entity-by-attr
   [node entity-type attr value]
   (first (find-entities-by-attr node entity-type attr value)))
@@ -339,6 +395,12 @@
                                                   {:priority :asc
                                                    :name :asc}
                                                   5)
+  
+  (find-entities-by-attrs-with-predicates-and-limit node :entity/contact
+                                                    {:priority 3}
+                                                    {:priority {:first ">"
+                                                                :bool "odd?"}}
+                                                    5)
 
   (count-entities-by-attrs node :entity/contact {:priority 3} {:distinct? true})
 
