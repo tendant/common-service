@@ -51,10 +51,9 @@
   (->> (crux/q (crux/db node)
                {:find '[?e]
                 :where '[[?e :crux.db/id ?id]]
-                :args [{'?id id}]})
-       (map (fn [[id]]
-              (retrieve-entity-by-id node id)))
-       (first)))
+                :args [{'?id id}]
+                :full-results? true})
+       (ffirst)))
 
 (defn find-entity-by-id-and-type
   [node id entity-type]
@@ -62,10 +61,9 @@
                {:find '[?e]
                 :where '[[?e :crux.db/id ?id]
                          [?e :entity/type ?t]]
-                :args [{'?id id '?t entity-type}]})
-       (map (fn [[id]]
-              (retrieve-entity-by-id node id)))
-       (first)))
+                :args [{'?id id '?t entity-type}]
+                :full-results? true})
+       (ffirst)))
 
 (defn find-entities-by-ids
   [node ids]
@@ -78,9 +76,8 @@
                            (conj q {'?id id}))
                          []
                          ids)
-                 })
-       (map (fn [[id]]
-              (retrieve-entity-by-id node id)))))
+                 :full-results? true})
+       (map first)))
 
 (defn find-entities-by-ids-and-type
   [node ids entity-type]
@@ -95,9 +92,8 @@
                              (conj q {'?t entity-type '?id id}))
                            []
                            ids)
-                   })
-         (map (fn [[id]]
-                (retrieve-entity-by-id node id))))))
+                   :full-results? true})
+         (map first))))
 
 (defn find-entities-by-attr
   [node entity-type attr value]
@@ -105,9 +101,9 @@
                {:find '[?e]
                 :where [['?e attr '?v]
                         ['?e :entity/type '?t]]
-                :args [{'?v value '?t entity-type}]})
-       (map (fn [[id]]
-              (retrieve-entity-by-id node id)))))
+                :args [{'?v value '?t entity-type}]
+                :full-results? true})
+       (map first)))
 
 (defn find-entities-by-attrs
   [node entity-type attrs]
@@ -125,9 +121,8 @@
                               (assoc q (get syma a) v))
                             {'?t entity-type}
                             attrs)]
-                   })
-         (map (fn [[id]]
-                (retrieve-entity-by-id node id))))))
+                   :full-results? true})
+         (map first))))
 
 (defn find-entities-by-attrs-with-order-by-and-limit
   [node entity-type attrs order-by limit]
@@ -182,9 +177,8 @@
                                     {'?t entity-type}
                                     avs)
                             order-by)]
-            })
-         (map (fn [[id]]
-                (retrieve-entity-by-id node id))))))
+            :full-results? true})
+         (map first))))
 
 (defn find-entities-by-attrs-with-predicates-and-limit
   [node entity-type attrs predicates limit]
@@ -238,9 +232,8 @@
                                     {'?t entity-type}
                                     avs)
                             predicates)]
-            })
-         (map (fn [[id]]
-                (retrieve-entity-by-id node id))))))
+            :full-results? true})
+         (map first))))
 
 (defn find-entity-by-attr
   [node entity-type attr value]
@@ -297,9 +290,9 @@
   (->> (crux/q (crux/db node)
                {:find '[?e]
                 :where '[[?e :entity/type ?t]]
-                :args [{'?t entity-type}]})
-       (map (fn [[id]]
-              (retrieve-entity-by-id node id)))))
+                :args [{'?t entity-type}]
+                :full-results? true})
+       (map first)))
 
 (defn retrieve-entity-tx-by-id
   [node id]
