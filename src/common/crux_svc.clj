@@ -71,11 +71,14 @@
   [node ids]
   {:pre [(vector? ids)]}
   (->> (crux/q (crux/db node)
-               {:find '[?e]
-                :in '[[?id ...]]
-                :where '[[?e :crux.db/id ?id]]
-                }
-               ids)
+               `{:find [~'?e]
+                 :where [[~'?e :crux.db/id ~'?id]]
+                 :args ~(reduce
+                         (fn [q id]
+                           (conj q {'?id id}))
+                         []
+                         ids)
+                 })
        (map (fn [[id]]
               (retrieve-entity-by-id node id)))))
 
@@ -84,12 +87,15 @@
   {:pre [(vector? ids)]}
   (let [tids (mapv #(vector entity-type %) ids)]
     (->> (crux/q (crux/db node)
-                 {:find '[?e]
-                  :in '[[[?t ?id]]]
-                  :where '[[?e :entity/type ?t]
-                           [?e :crux.db/id ?id]]
-                  }
-                 tids)
+                 `{:find [~'?e]
+                   :where [[~'?e :entity/type ~'?t]
+                           [~'?e :crux.db/id ~'?id]]
+                   :args ~(reduce
+                           (fn [q id]
+                             (conj q {'?t entity-type '?id id}))
+                           []
+                           ids)
+                   })
          (map (fn [[id]]
                 (retrieve-entity-by-id node id))))))
 
