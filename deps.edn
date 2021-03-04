@@ -1,0 +1,32 @@
+{
+ :paths ["src"]
+
+ :deps
+ {org.clojure/clojure {:mvn/version "1.10.0"}
+  juxt/crux-core {:mvn/version "20.12-1.13.0-beta"}
+  juxt/crux-jdbc {:mvn/version "20.12-1.13.0-beta"}
+  yogthos/config {:mvn/version "1.1.5"}}
+
+ :aliases
+ {:env/test {:extra-paths ["test"]}
+
+  ;; clj -M:test/runner
+  :test/runner {:extra-paths ["test"]
+                :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}}
+                :main-opts   ["-m" "kaocha.runner"]}
+
+  :lint/idiom {:replace-paths []
+               :replace-deps  {tvaughan/kibit-runner {:mvn/version "1.0.1"}}
+               :main-opts     ["-m" "kibit-runner.cmdline"]}
+
+  :project/outdated {:replace-paths []
+                     :replace-deps  {antq/antq {:mvn/version "0.9.3"}}
+                     :main-opts     ["-m" "antq.core"]}
+
+  ;; Run a REPL using nREPL server for access by cider-connect-clj
+  ;; clojure -M:middleware/cider-clj
+  :middleware/cider-clj {:extra-deps {nrepl/nrepl       {:mvn/version "0.8.3"}
+                                      cider/cider-nrepl {:mvn/version "0.25.7"}}
+                         :main-opts  ["-m" "nrepl.cmdline"
+                                      "--middleware" "[cider.nrepl/cider-middleware]"]}}
+}
