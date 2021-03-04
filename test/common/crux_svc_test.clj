@@ -14,3 +14,11 @@
 (deftest test-create-entity-sync
   (testing "Create entity sync"
     (tc/quick-check 100 prop-create-entity-sync)))
+
+(def prop-create-entity
+  (prop/for-all [params (gen/not-empty (gen/map gen/keyword gen/string-alphanumeric))]
+    (is (create-entity node :entity/my-test params))))
+
+(deftest test-create-entity
+  (testing "create entity"
+    (tc/quick-check 100 prop-create-entity)))

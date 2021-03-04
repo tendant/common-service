@@ -4,7 +4,7 @@ A Clojure library designed to ... well, that part is up to you.
 
 ## Testing
 
-    clj -M:test/runner:env/test
+    clj -M:test
 
 ## Usage
 

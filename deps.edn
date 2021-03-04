@@ -11,8 +11,8 @@
  {:env/test {:extra-paths ["test"]
              :extra-deps {org.clojure/test.check {:mvn/version "1.1.0"}}}
 
-  ;; clj -M:test/runner
-  :test/runner {:extra-paths ["test"]
+  ;; clj -M:test
+  :test {:extra-paths ["test"]
                 :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}
                               org.clojure/test.check {:mvn/version "1.1.0"}}
                 :main-opts   ["-m" "kaocha.runner"]}
