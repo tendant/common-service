@@ -34,3 +34,50 @@
              (count result)))
       (is (= 1
              (count result-with-project))))))
+
+(deftest test-timestamp-field
+  (testing "Timestamp field"
+    (let [entity-1 (create-entity-sync node entity-type {:name "before entity"
+                                                         :created-at (java.util.Date.)})
+          _ (Thread/sleep 10)
+          middle-date (java.util.Date.)
+          _ (Thread/sleep 10)
+          entity-2 (create-entity-sync node entity-type {:name "after entity"
+                                                         :created-at (java.util.Date.)})
+          future-date (java.util.Date.)
+          result (crux/q (crux/db node)
+                         '{:find [?e]
+                           :where [[?e :entity/type entity-type]
+                                   [?e :created-at ?created-at]]})
+          before-result (crux/q (crux/db node)
+                                {:find '[?e]
+                                 :where '[[?e :entity/type entity-type]
+                                          [?e :created-at ?created-at]
+                                          [(< ?created-at middle-date)]]
+                                 :args [{'middle-date middle-date}]
+                                 :full-results? true})
+          after-result (crux/q (crux/db node)
+                                {:find '[?e]
+                                 :where '[[?e :entity/type entity-type]
+                                          [?e :created-at ?created-at]
+                                          [(> ?created-at middle-date)]]
+                                 :args [{'middle-date middle-date}]
+                                 :full-results? true})
+          all-result (crux/q (crux/db node)
+                                {:find '[?e]
+                                 :where '[[?e :entity/type entity-type]
+                                          [?e :created-at ?created-at]
+                                          [(< ?created-at future-date)]]
+                                 :args [{'future-date future-date}]
+                                 :full-results? true})
+          ]
+      (is before-result)
+      (is (= 1 (count before-result)))
+      (is (= "before entity"
+             (:name (ffirst before-result))))
+      (is after-result)
+      (is (= 1 (count after-result)))
+      (is (= "after entity"
+             (:name (ffirst after-result))))
+      (is all-result)
+      (is (= 2 (count all-result))))))
