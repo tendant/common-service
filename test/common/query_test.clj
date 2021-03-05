@@ -7,16 +7,16 @@
             [clojure.test.check.properties :as prop]))
 
 (def node (crux.api/start-node {}))
-
-(def entity-type :entity/query-test)
+;; (def node (crux/new-api-client (str "http://localhost:" 3000)))
 
 (defn string-n [length]
   (gen/fmap #(apply str %)
             (gen/vector gen/char-alpha length)))
 
-(deftest test-added-filed
+(deftest test-added-field
   (testing "added field"
-    (let [entity-1 (create-entity-sync node entity-type {:name "no projectid"})
+    (let [entity-type :entity/added-field
+          entity-1 (create-entity-sync node entity-type {:name "no projectid"})
           entity-2 (create-entity-sync node entity-type {:name "with nil projectid"
                                                          :project-id  nil})
           entity-3 (create-entity-sync node entity-type {:name "with nil projectid"
@@ -48,7 +48,8 @@
 
 (deftest test-timestamp-field
   (testing "Timestamp field"
-    (let [entity-1 (create-entity-sync node entity-type {:name "before entity"
+    (let [entity-type :entity/timestamp-field
+          entity-1 (create-entity-sync node entity-type {:name "before entity"
                                                          :created-at (java.util.Date.)})
           _ (Thread/sleep 10)
           middle-date (java.util.Date.)
@@ -95,18 +96,20 @@
 
 (deftest test-relationship
   (testing "Relationship"
-    (let [content (create-entity-sync node :entity/content {:name "original content"})
+    (let [entity-content :entity/relationship-content
+          entity-content-derived :entity/relationship-content-derived
+          content (create-entity-sync node entity-content {:name "original content"})
           content-id (:crux.db/id content)
-          derived-content-1 (create-entity-sync node :entity/content-derived {:name "derived content 1"
-                                                                              :orig-content-id content-id
-                                                                              :relationship "thumbnail_256"})
-          derived-content-2 (create-entity-sync node :entity/content-derived {:name "derived content 2"
-                                                                              :orig-content-id content-id
-                                                                              :relationship "thumbnail_480"})
-          derived-content-3 (create-entity-sync node :entity/content-derived {:name "derived content 3"
-                                                                              :orig-content-id content-id
-                                                                              :relationship "720p"})
-          derived-contents (find-entities-by-attr node :entity/content-derived :orig-content-id content-id)]
+          derived-content-1 (create-entity-sync node entity-content-derived {:name "derived content 1"
+                                                                             :orig-content-id content-id
+                                                                             :relationship "thumbnail_256"})
+          derived-content-2 (create-entity-sync node entity-content-derived {:name "derived content 2"
+                                                                             :orig-content-id content-id
+                                                                             :relationship "thumbnail_480"})
+          derived-content-3 (create-entity-sync node entity-content-derived {:name "derived content 3"
+                                                                             :orig-content-id content-id
+                                                                             :relationship "720p"})
+          derived-contents (find-entities-by-attr node entity-content-derived :orig-content-id content-id)]
       (is content-id)
       (is derived-content-1)
       (is derived-content-2)
@@ -116,7 +119,8 @@
 
 (deftest test-user-actions
   (testing "User actions"
-    (let [user (create-entity-sync node :entity/user {:name "user 1"})
+    (let [entity-user :entity/user-actions-user
+          user (create-entity-sync node entity-user {:name "user 1"})
           user-act-type :sns/user-act
           user-id (:crux.db/id user)
           user-act-play (create-entity-sync node user-act-type {:subject-id user-id
