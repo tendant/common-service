@@ -15,25 +15,28 @@
 
 (deftest test-added-field
   (testing "added field"
-    (let [entity-type :entity/added-field
+    (let [entity-type :entity/added-field-2
           entity-1 (create-entity-sync node entity-type {:name "no projectid"})
           entity-2 (create-entity-sync node entity-type {:name "with nil projectid"
                                                          :project-id  nil})
           entity-3 (create-entity-sync node entity-type {:name "with nil projectid"
                                                          :project-id  "project-id-1"})
           result (crux/q (crux/db node)
-                         '{:find [?e]
-                           :where [[?e :entity/type entity-type]]})
+                         {:find '[?e]
+                          :where '[[?e :entity/type entity-type]]
+                          :args [{'entity-type entity-type}]})
           result-with-project (crux/q (crux/db node)
                                       {:find '[?e]
                                        :where '[[?e :entity/type entity-type]
                                                 [?e :project-id project-id]]
-                                        :args [{'project-id "project-id-1"}]})
+                                        :args [{'project-id "project-id-1"
+                                                'entity-type entity-type}]})
           result-without-project (crux/q (crux/db node)
                                          {:find '[?e]
                                           :where '[[?e :entity/type entity-type]
                                                    [(get-attr ?e :project-id nil) [?project-id]]
-                                                   [(nil? ?project-id)]]})]
+                                                   [(nil? ?project-id)]]
+                                          :args [{'entity-type entity-type}]})]
       (is result)
       (is (= 3
              (count result)))
@@ -66,21 +69,24 @@
                                  :where '[[?e :entity/type entity-type]
                                           [?e :created-at ?created-at]
                                           [(< ?created-at middle-date)]]
-                                 :args [{'middle-date middle-date}]
+                                 :args [{'middle-date middle-date
+                                         'entity-type entity-type}]
                                  :full-results? true})
           after-result (crux/q (crux/db node)
                                 {:find '[?e]
                                  :where '[[?e :entity/type entity-type]
                                           [?e :created-at ?created-at]
                                           [(> ?created-at middle-date)]]
-                                 :args [{'middle-date middle-date}]
+                                 :args [{'middle-date middle-date
+                                         'entity-type entity-type}]
                                  :full-results? true})
           all-result (crux/q (crux/db node)
                                 {:find '[?e]
                                  :where '[[?e :entity/type entity-type]
                                           [?e :created-at ?created-at]
                                           [(< ?created-at future-date)]]
-                                 :args [{'future-date future-date}]
+                                 :args [{'future-date future-date
+                                         'entity-type entity-type}]
                                  :full-results? true})
           ]
       (is before-result)
