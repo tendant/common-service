@@ -81,3 +81,94 @@
              (:name (ffirst after-result))))
       (is all-result)
       (is (= 2 (count all-result))))))
+
+(deftest test-relationship
+  (testing "Relationship"
+    (let [content (create-entity-sync node :entity/content {:name "original content"})
+          content-id (:crux.db/id content)
+          derived-content-1 (create-entity-sync node :entity/content-derived {:name "derived content 1"
+                                                                              :orig-content-id content-id
+                                                                              :relationship "thumbnail_256"})
+          derived-content-2 (create-entity-sync node :entity/content-derived {:name "derived content 2"
+                                                                              :orig-content-id content-id
+                                                                              :relationship "thumbnail_480"})
+          derived-content-3 (create-entity-sync node :entity/content-derived {:name "derived content 3"
+                                                                              :orig-content-id content-id
+                                                                              :relationship "720p"})
+          derived-contents (find-entities-by-attr node :entity/content-derived :orig-content-id content-id)]
+      (is content-id)
+      (is derived-content-1)
+      (is derived-content-2)
+      (is derived-content-3)
+      (is (= 3
+             (count derived-contents))))))
+
+(deftest test-user-actions
+  (testing "User actions"
+    (let [user (create-entity-sync node :entity/user {:name "user 1"})
+          user-act-type :sns/user-act
+          user-id (:crux.db/id user)
+          user-act-play (create-entity-sync node user-act-type {:subject-id user-id
+                                                                :subject-type :cms/thing
+                                                                :subject-action :play})
+          user-act-like (create-entity-sync node user-act-type {:subject-id user-id
+                                                                :subject-type :cms/thing
+                                                                :subject-action :like})
+          - (create-entity-sync node user-act-type {:subject-id user-id
+                                                    :subject-type :cms/thing
+                                                    :subject-action :like})
+          user-act-watch (create-entity-sync node user-act-type {:subject-id user-id
+                                                                 :subject-type :cms/thing
+                                                                 :subject-action :watch})
+          _ (create-entity-sync node user-act-type {:subject-id user-id
+                                                    :subject-type :cms/thing
+                                                    :subject-action :watch})
+          _ (create-entity-sync node user-act-type {:subject-id user-id
+                                                    :subject-type :cms/thing
+                                                    :subject-action :watch})
+          user-act-share (create-entity-sync node user-act-type {:subject-id user-id
+                                                                 :subject-type :cms/thing
+                                                                 :subject-action :share})
+          _ (create-entity-sync node user-act-type {:subject-id user-id
+                                                    :subject-type :cms/thing
+                                                    :subject-action :share})
+          _ (create-entity-sync node user-act-type {:subject-id user-id
+                                                    :subject-type :cms/thing
+                                                    :subject-action :share})
+          _ (create-entity-sync node user-act-type {:subject-id user-id
+                                                    :subject-type :cms/thing
+                                                    :subject-action :share})
+          result (crux/q (crux/db node)
+                         {:find '[play like watch share]
+                          :where '[[(q {:find [(count ?e)]
+                                        :where [[?e :entity/type :sns/user-act]
+                                                [?e :subject-id ?sid]
+                                                [?e :subject-type ?stype]
+                                                [?e :subject-action :play]]})
+                                    [[play]]]
+                                   [(q {:find [(count ?e)]
+                                        :where [[?e :entity/type :sns/user-act]
+                                                [?e :subject-id ?sid]
+                                                [?e :subject-type ?stype]
+                                                [?e :subject-action :like]]})
+                                    [[like]]]
+                                   [(q {:find [(count ?e)]
+                                        :where [[?e :entity/type :sns/user-act]
+                                                [?e :subject-id ?sid]
+                                                [?e :subject-type ?stype]
+                                                [?e :subject-action :watch]]})
+                                    [[watch]]]
+                                   [(q {:find [(count ?e)]
+                                        :where [[?e :entity/type :sns/user-act]
+                                                [?e :subject-id ?sid]
+                                                [?e :subject-type ?stype]
+                                                [?e :subject-action :share]]})
+                                    [[share]]]
+                                   ]
+                           :args [{'?sid user-id
+                                   '?stype :cms/thing}]})]
+      (is user-id)
+      (is user)
+      (is (not (empty? result)))
+      (is (= [1 2 3 4]
+             (first result))))))
