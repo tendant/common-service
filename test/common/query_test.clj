@@ -28,12 +28,23 @@
                                       {:find '[?e]
                                        :where '[[?e :entity/type entity-type]
                                                 [?e :project-id project-id]]
-                                        :args [{'project-id "project-id-1"}]})]
+                                        :args [{'project-id "project-id-1"}]})
+          result-without-project (crux/q (crux/db node)
+                                         {:find '[?e]
+                                          :where '[[?e :entity/type entity-type]
+                                                   [(get-attr ?e :project-id nil) [?project-id]]
+                                                   [(nil? ?project-id)]]})]
       (is result)
       (is (= 3
              (count result)))
       (is (= 1
-             (count result-with-project))))))
+             (count result-with-project)))
+      (is result-without-project)
+      (is (= 2
+             (count result-without-project)))
+      (is (= #{[(:crux.db/id entity-1)]
+               [(:crux.db/id entity-2)]}
+             result-without-project)))))
 
 (deftest test-timestamp-field
   (testing "Timestamp field"
