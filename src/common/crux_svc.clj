@@ -49,10 +49,9 @@
 (defn find-entity-by-id
   [node id]
   (->> (crux/q (crux/db node)
-               {:find '[?e]
+               {:find '[(pull ?e [*])]
                 :where '[[?e :crux.db/id ?id]]
-                :args [{'?id id}]
-                :full-results? true})
+                :args [{'?id id}]})
        (ffirst)))
 
 (defn find-entity-by-id-and-type
