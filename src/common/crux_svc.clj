@@ -282,10 +282,9 @@
 (defn entities
   [node entity-type]
   (->> (crux/q (crux/db node)
-               {:find '[?e]
+               {:find '[(pull ?e [*])]
                 :where '[[?e :entity/type ?t]]
-                :args [{'?t entity-type}]
-                :full-results? true})
+                :args [{'?t entity-type}]})
        (map first)))
 
 (defn retrieve-entity-tx-by-id
