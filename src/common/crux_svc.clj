@@ -105,7 +105,7 @@
   {:pre [(map? attrs)]}
   (let [syma (into {} (for [[k v] attrs] [k (gen-sym k)]))]
     (->> (crux/q (crux/db node)
-                 `{:find [~'?e]
+                 `{:find [~'(pull ?e [*])]
                    :where ~(reduce
                             (fn [q [a v]]
                               (conj q ['?e a (get syma a)]))
@@ -115,8 +115,7 @@
                             (fn [q [a v]]
                               (assoc q (get syma a) v))
                             {'?t entity-type}
-                            attrs)]
-                   :full-results? true})
+                            attrs)]})
          (map first))))
 
 (defn find-entities-by-attrs-with-order-by-and-limit
