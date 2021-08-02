@@ -153,3 +153,5 @@
       (is (= 9 (->> (first find-all-entities)
                     (:order))))
       (is (= 10 (count find-all-entities))))))
+
+;; TODO test find-entities-by-attrs-with-predicates-and-limit
