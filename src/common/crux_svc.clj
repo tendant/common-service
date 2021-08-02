@@ -134,7 +134,7 @@
                              (cond-> q
                                (some? v)
                                (conj (get symm a))))
-                           ['?e]
+                           '[(pull ?e [*])]
                            order-by)
             :where ~(reduce (fn [q [a v]]
                               (cond-> q
@@ -171,7 +171,7 @@
                                     {'?t entity-type}
                                     avs)
                             order-by)]
-            :full-results? true})
+            })
          (map first))))
 
 (defn find-entities-by-attrs-with-predicates-and-limit
