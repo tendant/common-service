@@ -142,3 +142,14 @@
       (is (= 1 (count find-one-entity)))
       (is (= (first ids) (:crux.db/id (first find-one-entity))))
       (is (= 10 (count find-all-entities))))))
+
+
+(deftest test-find-entities-by-attrs-with-order-by-and-limit
+  (testing "Find Entities by attrs with order by and limit"
+    (let [entities (->> (range 10)
+                        (map #(create-entity-sync node entity-type {:name "test find-entities-by-attrs-with-order-by-and-limit"
+                                                                    :order %})))
+          find-all-entities (find-entities-by-attrs-with-order-by-and-limit node entity-type {:name "test find-entities-by-attrs-with-order-by-and-limit"} {:order :desc-rev} 100)]
+      (is (= 9 (->> (first find-all-entities)
+                    (:order))))
+      (is (= 10 (count find-all-entities))))))
