@@ -129,3 +129,16 @@
       (is (= 1 (count find-one-entity)))
       (is (= (first ids) (:crux.db/id (first find-one-entity))))
       (is (= 10 (count find-all-entities))))))
+
+
+(deftest test-find-entities-by-ids-and-type
+  (testing "Find Entities by ids and type"
+    (let [entities (->> (range 10)
+                        (map #(create-entity-sync node entity-type {:name (format "test find-entities-by-ids-and-type %s" %)})))
+          ids (->> (map :crux.db/id entities)
+                   (into []))
+          find-one-entity (find-entities-by-ids-and-type node [(first ids)] entity-type)
+          find-all-entities (find-entities-by-ids-and-type node ids entity-type)]
+      (is (= 1 (count find-one-entity)))
+      (is (= (first ids) (:crux.db/id (first find-one-entity))))
+      (is (= 10 (count find-all-entities))))))

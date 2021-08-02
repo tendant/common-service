@@ -81,15 +81,14 @@
   {:pre [(vector? ids)]}
   (let [tids (mapv #(vector entity-type %) ids)]
     (->> (crux/q (crux/db node)
-                 `{:find [~'?e]
+                 `{:find [~'(pull ?e [*])]
                    :where [[~'?e :entity/type ~'?t]
                            [~'?e :crux.db/id ~'?id]]
                    :args ~(reduce
                            (fn [q id]
                              (conj q {'?t entity-type '?id id}))
                            []
-                           ids)
-                   :full-results? true})
+                           ids)})
          (map first))))
 
 (defn find-entities-by-attr
