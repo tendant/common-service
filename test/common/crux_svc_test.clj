@@ -118,3 +118,14 @@
 (deftest test-find-entities-by-attr
   (testing "Find entities by attr"
     (tc/quick-check 100 prop-find-entities-by-attrs)))
+(deftest test-find-entities-by-ids
+  (testing "Find Entities by ids"
+    (let [entities (->> (range 10)
+                        (map #(create-entity-sync node entity-type {:name (format "test find-entities-by-ids %s" %)})))
+          ids (->> (map :crux.db/id entities)
+                   (into []))
+          find-one-entity (find-entities-by-ids node [(first ids)])
+          find-all-entities (find-entities-by-ids node ids)]
+      (is (= 1 (count find-one-entity)))
+      (is (= (first ids) (:crux.db/id (first find-one-entity))))
+      (is (= 10 (count find-all-entities))))))

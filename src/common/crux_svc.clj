@@ -67,14 +67,13 @@
   [node ids]
   {:pre [(vector? ids)]}
   (->> (crux/q (crux/db node)
-               `{:find [~'?e]
+               `{:find [~'(pull ?e [*])]
                  :where [[~'?e :crux.db/id ~'?id]]
                  :args ~(reduce
                          (fn [q id]
                            (conj q {'?id id}))
                          []
-                         ids)
-                 :full-results? true})
+                         ids)})
        (map first)))
 
 (defn find-entities-by-ids-and-type
