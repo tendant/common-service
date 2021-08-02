@@ -190,7 +190,7 @@
                              (cond-> q
                                (some? v)
                                (conj (get symm a))))
-                           ['?e]
+                           '[(pull ?e [*])]
                            predicates)
             :where ~(reduce (fn [q [a v]]
                               (let [ffn (:first v)
@@ -226,7 +226,7 @@
                                     {'?t entity-type}
                                     avs)
                             predicates)]
-            :full-results? true})
+            })
          (map first))))
 
 (defn find-entity-by-attr
