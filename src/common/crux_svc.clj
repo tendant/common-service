@@ -94,11 +94,10 @@
 (defn find-entities-by-attr
   [node entity-type attr value]
   (->> (crux/q (crux/db node)
-               {:find '[?e]
+               {:find '[(pull ?e [*])]
                 :where [['?e attr '?v]
                         ['?e :entity/type '?t]]
-                :args [{'?v value '?t entity-type}]
-                :full-results? true})
+                :args [{'?v value '?t entity-type}]})
        (map first)))
 
 (defn find-entities-by-attrs
