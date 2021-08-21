@@ -1,6 +1,5 @@
 (ns common.crux-node
   (:require [crux.api :as crux]
-            [crux.http-server :as crux-http]
             [clojure.java.io :as io]
             [config.core :as config])
   (:import java.time.Duration))
