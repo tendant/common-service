@@ -5,7 +5,9 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/test.check "1.1.0"]
-                 [juxt/crux-core "21.05-1.17.0-beta"]
-                 [juxt/crux-jdbc "21.05-1.17.0-beta"]
-                 [yogthos/config "1.1.5"]]
+                 [pro.juxt.crux/crux-core "1.18.1"]
+                 [pro.juxt.crux/crux-jdbc "1.18.1"]
+                 [pro.juxt.crux/crux-s3 "1.18.1"]
+                 [pro.juxt.crux/crux-rocksdb "1.18.1"]
+                 [yogthos/config "1.1.7"]]
   :repl-options {:init-ns common.crux-svc})
