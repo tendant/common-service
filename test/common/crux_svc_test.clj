@@ -148,7 +148,8 @@
   (testing "Find Entities by attrs with order by and limit"
     (let [entities (->> (range 10)
                         (map #(create-entity-sync node entity-type {:name "test find-entities-by-attrs-with-order-by-and-limit"
-                                                                    :order %})))
+                                                                    :order %}))
+                        doall)
           find-all-entities (find-entities-by-attrs-with-order-by-and-limit node entity-type {:name "test find-entities-by-attrs-with-order-by-and-limit"} {:order :desc-rev} 100)]
       (is (= 9 (->> (first find-all-entities)
                     (:order))))
