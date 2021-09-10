@@ -2,7 +2,7 @@
 
 A collection of common utility functions for XTDB
 
-org.clojars.wang/common-service {:mvn/version "0.0.0"}
+org.clojars.wang/common-service {:mvn/version "1.0.76"}
 
 ## Testing
 
