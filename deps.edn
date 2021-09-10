@@ -15,6 +15,9 @@
              :extra-deps {org.clojure/test.check {:mvn/version "1.1.0"}
                           juxt/crux-http-client {:mvn/version "21.01-1.14.0-beta"}}}
 
+  :build {:deps {io.github.tendant/simple-build {:git/tag "v0.0.28" :git/sha "6e67b0b"}}
+          :ns-default build}
+
   ;; clj -M:test
   :test {:extra-paths ["test"]
                 :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0.732"}
