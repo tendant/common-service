@@ -3,14 +3,20 @@
 
  :deps
  {org.clojure/clojure {:mvn/version "1.10.0"}
-  juxt/crux-core {:mvn/version "20.12-1.13.0-beta"}
-  juxt/crux-jdbc {:mvn/version "20.12-1.13.0-beta"}
-  yogthos/config {:mvn/version "1.1.5"}}
+  pro.juxt.crux/crux-http-server {:mvn/version "1.18.1"}
+  pro.juxt.crux/crux-core {:mvn/version "1.18.1"}
+  pro.juxt.crux/crux-jdbc {:mvn/version "1.18.1"}
+  pro.juxt.crux/crux-s3 {:mvn/version "1.18.1"}
+  pro.juxt.crux/crux-rocksdb {:mvn/version "1.18.1"}
+  yogthos/config {:mvn/version "1.1.7"}}
 
  :aliases
  {:env/test {:extra-paths ["test"]
              :extra-deps {org.clojure/test.check {:mvn/version "1.1.0"}
                           juxt/crux-http-client {:mvn/version "21.01-1.14.0-beta"}}}
+
+  :build {:deps {io.github.tendant/simple-build {:git/tag "v0.0.28" :git/sha "6e67b0b"}}
+          :ns-default build}
 
   ;; clj -M:test
   :test {:extra-paths ["test"]
