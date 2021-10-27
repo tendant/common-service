@@ -14,7 +14,7 @@
   (reify crux.s3.S3Configurator
     (makeClient [_]
       (let [builder (S3AsyncClient/builder)
-            _ (.region builder (Region/of "oss-cn-hangzhou"))
+            _ (.region builder (Region/of (:crux-checkpointer-minio-region config/env)))
             endpoint-uri (java.net.URI/create (:crux-checkpointer-minio-endpoint config/env))
             _ (.endpointOverride builder endpoint-uri)]
         (.build builder)))))
