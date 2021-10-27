@@ -2,11 +2,22 @@
   (:require [crux.api :as crux]
             [clojure.java.io :as io]
             [config.core :as config])
-  (:import java.time.Duration))
+  (:import java.time.Duration
+           software.amazon.awssdk.regions.Region
+           software.amazon.awssdk.services.s3.S3AsyncClient))
 
 (defn- mem-node-config
   []
   {})
+
+(defn ->configurator [_]
+  (reify crux.s3.S3Configurator
+    (makeClient [_]
+      (let [builder (S3AsyncClient/builder)
+            _ (.region builder (Region/of (:crux-checkpointer-minio-region config/env)))
+            endpoint-uri (java.net.URI/create (:crux-checkpointer-minio-endpoint config/env))
+            _ (.endpointOverride builder endpoint-uri)]
+        (.build builder)))))
 
 ;; enviroment varaibles:
 ;; CRUX_CHECKPOINTER_TYPE: "filesystem" or "s3"
@@ -18,7 +29,11 @@
                   :path (:crux-checkpointer-filesystem-path config/env)}
     "s3" {:crux/module 'crux.s3.checkpoint/->cp-store
           :bucket (:crux-checkpointer-s3-bucket config/env)
-          :prefix (:crux-checkpointer-s3-prefix config/env)}))
+          :prefix (:crux-checkpointer-s3-prefix config/env)}
+    "minio" {:bucket (:crux-checkpointer-minio-bucket config/env)
+             :prefix (:crux-checkpointer-minio-prefix config/env)
+             :configurator `->configurator
+             :crux/module 'crux.s3.checkpoint/->cp-store}))
 
 (defn- jdbc-node-config []
   (let [config (cond-> {:crux.jdbc/connection-pool {:dialect {:crux/module 'crux.jdbc.psql/->dialect}
