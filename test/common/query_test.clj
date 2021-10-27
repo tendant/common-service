@@ -65,29 +65,26 @@
                            :where [[?e :entity/type entity-type]
                                    [?e :created-at ?created-at]]})
           before-result (crux/q (crux/db node)
-                                {:find '[?e]
+                                {:find '[(pull ?e [*])]
                                  :where '[[?e :entity/type entity-type]
                                           [?e :created-at ?created-at]
                                           [(< ?created-at middle-date)]]
                                  :args [{'middle-date middle-date
-                                         'entity-type entity-type}]
-                                 :full-results? true})
+                                         'entity-type entity-type}]})
           after-result (crux/q (crux/db node)
-                                {:find '[?e]
-                                 :where '[[?e :entity/type entity-type]
-                                          [?e :created-at ?created-at]
-                                          [(> ?created-at middle-date)]]
-                                 :args [{'middle-date middle-date
-                                         'entity-type entity-type}]
-                                 :full-results? true})
+                               {:find '[(pull ?e [*])]
+                                :where '[[?e :entity/type entity-type]
+                                         [?e :created-at ?created-at]
+                                         [(> ?created-at middle-date)]]
+                                :args [{'middle-date middle-date
+                                        'entity-type entity-type}]})
           all-result (crux/q (crux/db node)
-                                {:find '[?e]
-                                 :where '[[?e :entity/type entity-type]
-                                          [?e :created-at ?created-at]
-                                          [(< ?created-at future-date)]]
-                                 :args [{'future-date future-date
-                                         'entity-type entity-type}]
-                                 :full-results? true})
+                             {:find '[(pull ?e [*])]
+                              :where '[[?e :entity/type entity-type]
+                                       [?e :created-at ?created-at]
+                                       [(< ?created-at future-date)]]
+                              :args [{'future-date future-date
+                                      'entity-type entity-type}]})
           ]
       (is before-result)
       (is (= 1 (count before-result)))

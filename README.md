@@ -1,6 +1,8 @@
 # common-service
 
-A Clojure library designed to ... well, that part is up to you.
+A collection of common utility functions for XTDB
+
+org.clojars.wang/common-service {:mvn/version "1.0.76"}
 
 ## Testing
 
@@ -8,7 +10,7 @@ A Clojure library designed to ... well, that part is up to you.
 
 ## Usage
 
-FIXME
+
 
 ## License
 

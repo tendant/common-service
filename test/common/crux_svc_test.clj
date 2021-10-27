@@ -61,7 +61,6 @@
           entity (create-entity-sync node entity-type entity-params)
           entity-id (:crux.db/id entity)
           results (find-entities-by-attr node entity-type attr-name attr-value)]
-      (println "results:" results)
       (is (not-empty results))
       (is (= entity-id
              (:crux.db/id (first results))))
@@ -84,7 +83,6 @@
           entity-id (:crux.db/id entity)
           results (find-entities-by-attrs node entity-type {attr-name-a attr-value-a
                                                             attr-name-b attr-value-b})]
-      (println "results:" results)
       (is (not-empty results))
       (is (= entity-id
              (:crux.db/id (first results))))
@@ -109,7 +107,6 @@
           entity-2-id (:crux.db/id entity-2)
           results (find-entities-by-attrs node entity-type {attr-name-a attr-value-a
                                                             attr-name-b attr-value-b})]
-      (println "results:" results)
       (is (not-empty results))
       (is (= 2 (count results)))
       (is #{entity-1-id entity-2-id}
@@ -148,7 +145,8 @@
   (testing "Find Entities by attrs with order by and limit"
     (let [entities (->> (range 10)
                         (map #(create-entity-sync node entity-type {:name "test find-entities-by-attrs-with-order-by-and-limit"
-                                                                    :order %})))
+                                                                    :order %}))
+                        doall)
           find-all-entities (find-entities-by-attrs-with-order-by-and-limit node entity-type {:name "test find-entities-by-attrs-with-order-by-and-limit"} {:order :desc-rev} 100)]
       (is (= 9 (->> (first find-all-entities)
                     (:order))))
